@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari-Smart | Live Travel Assistant - Home</title>
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Safari-Smart 🇰🇪</div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="destinations.html">Destinations</a></li>
+            <li id="currency-display">1 USD = Loading...</li> 
+        </ul>
+    </nav>
+
+    <header class="hero-section" style="background: url('assets/images/hero-banner.jpg') no-repeat center center/cover;">
+        <div class="overlay" style="background: rgba(0, 0, 0, 0.5); padding: 50px 0; min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+            <h1 style="font-size: 3.5rem; margin-bottom: 20px;">Your Smart Travel Journey Starts Here</h1>
+            <p style="font-size: 1.5rem; margin-bottom: 30px; font-weight: 300;">Plan your Kenyan adventure with live data and local expertise.</p>
+
+            <form action="destinations.html" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 700px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="q" placeholder="Search by city (e.g., Mombasa, Nakuru)" style="flex-grow: 1; padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+                    <select name="duration" style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="">Duration</option>
+                        <option value="1 Day">1 Day</option>
+                        <option value="3 Days">3 Days</option>
+                    </select>
+                    <button type="submit" style="padding: 12px 25px; background-color: var(--secondary-color); color: white;">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <section class="statistics-section" style="padding: 50px 5%; text-align: center; background-color: #fff;">
+        <h2 style="margin-bottom: 30px; color: var(--secondary-color);">Safari-Smart by the Numbers</h2>
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 30px;">
+            <div class="stat-box" style="padding: 20px; border-left: 5px solid var(--primary-color);">
+                <i class="fas fa-map-marked-alt fa-3x" style="color: var(--primary-color);"></i>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 10px 0;">35+</p>
+                <p>Destinations Listed</p>
+            </div>
+            <div class="stat-box" style="padding: 20px; border-left: 5px solid var(--primary-color);">
+                <i class="fas fa-users fa-3x" style="color: var(--primary-color);"></i>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 10px 0;">5,800+</p>
+                <p>Tours Booked</p>
+            </div>
+            <div class="stat-box" style="padding: 20px; border-left: 5px solid var(--primary-color);">
+                <i class="fas fa-satellite-dish fa-3x" style="color: var(--primary-color);"></i>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 10px 0;">100%</p>
+                <p>Live Weather Coverage</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="featured-tours" style="padding: 50px 5%; text-align: center; background-color: var(--bg-light);">
+        <h2 style="margin-bottom: 40px; color: var(--secondary-color);">Featured Live Packages</h2>
+        <div id="featured-listings" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 30px;">
+            </div>
+        <button onclick="window.location.href='destinations.html'" style="margin-top: 40px; padding: 15px 30px; font-size: 1.1rem;">
+            View All Advanced Listings <i class="fas fa-arrow-right"></i>
+        </button>
+    </section>
+
+    <section class="map-teaser" style="padding: 50px 5%; text-align: center; background-color: #fff;">
+        <h2 style="margin-bottom: 30px; color: var(--secondary-color);">Why Choose Safari-Smart?</h2>
+        <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; text-align: left;">
+            <div style="width: 40%;">
+                <h3 style="color: var(--primary-color);"><i class="fas fa-cloud-sun"></i> Real-Time Weather</h3>
+                <p>We connect directly to live APIs to give you accurate temperature and rain forecasts before you book, making your planning safer and smarter.</p>
+            </div>
+            <div style="width: 40%;">
+                <h3 style="color: var(--primary-color);"><i class="fas fa-map-marker-alt"></i> Interactive Map Search</h3>
+                <p>Browse available tours visually using our integrated Google Map on the destinations page—a feature unique to our platform.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer style="padding: 30px 5%; background-color: var(--text-dark); color: #fff; text-align: center;">
+        <p>&copy; 2025 Safari-Smart Tours. Final Year Project by Kelvin Kimutai. All Rights Reserved.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
