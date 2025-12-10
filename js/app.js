@@ -9,8 +9,6 @@ const EXCHANGERATE_API_KEY = "e9af448503b816dc05d5e0c6"; // Get free key from ex
 const BOOKING_WHATSAPP_NUMBER = "254745964295"; // Your phone number (e.g., 254722123456)
 
 // Global map variables
-let map;
-let markers = [];
 
 
 // ====================================================================

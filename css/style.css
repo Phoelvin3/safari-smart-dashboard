@@ -1,7 +1,4 @@
-/* ============================================================
-   GLOBAL STYLES AND RESETS
-============================================================ */
-
+/* GLOBAL STYLES AND RESETS */
 :root {
     --primary-color: #007bff; /* Bright Blue */
     --secondary-color: #1a7e44; /* Kenyan Green */
@@ -23,10 +20,7 @@ body {
     line-height: 1.6;
 }
 
-/* ============================================================
-   NAVIGATION BAR
-============================================================ */
-
+/* NAVIGATION */
 nav {
     display: flex;
     justify-content: space-between;
@@ -60,38 +54,12 @@ nav ul a {
 }
 
 nav ul a:hover {
-    color: #ffc107;
+    color: #ffc107; /* Light Gold for highlight */
 }
 
-/* ============================================================
-   HERO HEADER SECTION
-============================================================ */
-
-header {
-    background: url('assets/images/hero-banner.jpg') no-repeat center center/cover;
-    color: var(--text-light);
-    text-align: center;
-    padding: 100px 20px;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-header h1 {
-    font-size: 3rem;
-    margin-bottom: 10px;
-}
-
-header p {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-}
-
-/* ============================================================
-   BUTTON STYLES
-============================================================ */
-
+/* ============================= */
+/* === BUTTON STYLES (GENERAL) === */
+/* ============================= */
 button {
     background-color: var(--primary-color);
     color: var(--text-light);
@@ -107,204 +75,218 @@ button:hover {
     background-color: #0056b3;
 }
 
-/* ============================================================
-   FEATURED SECTION
-============================================================ */
+/* =============================== */
+/* === HEADER/HERO SECTION (HOME) === */
+/* =============================== */
+.hero-section {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    /* Hero section should not have fixed height, the content inside defines it */
+}
 
-.featured {
+.hero-section .overlay {
+    background: rgba(0, 0, 0, 0.5);
     padding: 50px 5%;
-    text-align: center;
-}
-
-.featured h2 {
-    font-size: 2rem;
-    margin-bottom: 30px;
-    color: var(--secondary-color);
-}
-
-.destination-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 450px;
-    text-align: left;
-}
-
-.destination-card img {
-    width: 100%;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-
-/* ============================================================
-   LIVE DATA BOX (BLUE INFO BOX)
-============================================================ */
-
-.live-data-box {
-    background: #e9f5ff;
-    border: 1px solid var(--primary-color);
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
-
-.live-data-box h4 {
-    margin-top: 0;
-    color: var(--primary-color);
+    min-height: 400px;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-}
-
-.live-data-box img {
-    margin: 0;
-}
-
-/* ============================================================
-   ADVANCED LAYOUT (MAP + RESULTS)
-============================================================ */
-
-#advanced-layout {
-    display: flex;
-}
-
-#map-container {
-    position: sticky;
-    top: 0;
-    max-width: 40%;
-    min-width: 300px;
-    border-right: 2px solid #eee;
-}
-
-#map {
-    height: 100%;
-    min-height: 90vh;
-}
-
-/* ============================================================
-   RESULTS & DASHBOARD CONTENT
-============================================================ */
-
-#results-container {
-    flex: 1;
-    padding: 20px 30px;
-}
-
-#results-container header h1 {
-    font-size: 2rem;
-    color: var(--secondary-color);
-}
-
-.dashboard-summary {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.summary-card {
-    flex: 1;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
+    color: var(--text-light);
 }
 
-.summary-value {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--secondary-color);
-}
-
-/* ============================================================
-   FILTER CONTROLS
-============================================================ */
-
-#filter-controls {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
+.hero-section h1 {
+    font-size: 3.5rem;
     margin-bottom: 20px;
 }
 
-#filter-controls h3 {
-    margin-bottom: 15px;
+.hero-section p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    font-weight: 300;
+}
+
+/* Hero Search Form */
+.hero-section form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%; /* Take full width on small screens */
+    max-width: 700px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hero-section form > div {
+    display: flex;
+    gap: 10px;
+}
+
+.hero-section form input[type="text"],
+.hero-section form select {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.hero-section form button[type="submit"] {
+    padding: 12px 25px;
+    background-color: var(--secondary-color);
+    color: white;
+}
+/* Ensure form elements respect flex on large screens and stack on small screens */
+@media (max-width: 600px) {
+    .hero-section form > div {
+        flex-direction: column; /* Stack input, select, and button vertically */
+    }
+    .hero-section form input[type="text"],
+    .hero-section form select,
+    .hero-section form button[type="submit"] {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+}
+
+
+/* =========================== */
+/* === STATISTICS SECTION === */
+/* =========================== */
+.statistics-section {
+    padding: 50px 5%;
+    text-align: center;
+    background-color: #fff;
+}
+
+.statistics-section h2 {
+    margin-bottom: 30px;
+    color: var(--secondary-color);
+    font-size: 2rem;
+}
+
+.statistics-section > div {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.stat-box {
+    padding: 20px;
+    border-left: 5px solid var(--primary-color);
+    flex: 1; /* Allows boxes to share space equally */
+    min-width: 200px; /* Prevents shrinking too much */
+    max-width: 300px;
+}
+
+.stat-box i {
     color: var(--primary-color);
 }
 
-.filter-group {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 4px;
+.stat-box p:nth-child(2) { /* The value: 35+, 5800+, 100% */
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 10px 0;
 }
 
-.filter-group input[type="text"],
-.filter-group select,
-.filter-group input[type="range"] {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+/* =============================== */
+/* === FEATURED TOURS SECTION === */
+/* =============================== */
+.featured-tours {
+    padding: 50px 5%;
+    text-align: center;
+    background-color: var(--bg-light);
 }
 
-/* ============================================================
-   TOUR LISTINGS (ADVANCED CARD STYLE)
-============================================================ */
+.featured-tours h2 {
+    margin-bottom: 40px;
+    color: var(--secondary-color);
+    font-size: 2rem;
+}
 
-.tour-card {
+#featured-listings {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+/* Assuming destination-card styles are already defined,
+   but ensuring they are responsive: */
+.destination-card {
+    /* Styles needed for the card structure */
     background: #fff;
-    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    border-left: 5px solid var(--secondary-color);
+    padding: 20px;
+    margin: 0; /* Remove auto margins from the initial block */
+    max-width: 350px; /* Standardize card size for wrapping */
+    min-width: 280px;
+    text-align: left;
 }
 
-.tour-card h3 {
-    margin-bottom: 8px;
+/* =============================== */
+/* === MAP TEASER SECTION === */
+/* =============================== */
+.map-teaser {
+    padding: 50px 5%;
+    text-align: center;
+    background-color: #fff;
+}
+
+.map-teaser h2 {
+    margin-bottom: 30px;
     color: var(--secondary-color);
+    font-size: 2rem;
+}
+
+.map-teaser > div {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap; /* Allows wrapping on small screens */
+    text-align: left;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.map-teaser h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
     font-size: 1.4rem;
 }
 
-.tour-card p {
-    margin-bottom: 5px;
+/* ================== */
+/* === FOOTER === */
+/* ================== */
+footer {
+    padding: 30px 5%;
+    background-color: var(--text-dark);
+    color: #fff;
+    text-align: center;
 }
 
-.tour-card .price-tag {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
 
-/* ============================================================
-   RESPONSIVENESS
-============================================================ */
+/* ========================== */
+/* === MEDIA QUERIES (RESPONSIVENESS) === */
+/* ========================== */
 
-@media (max-width: 1024px) {
-    #advanced-layout {
-        flex-direction: column;
-    }
-
-    #map-container {
-        position: relative;
-        max-width: 100%;
-        min-height: 350px;
-        border-right: none;
-        margin-bottom: 20px;
-    }
-}
-
+/* Mobile devices (Default styles cover very small screens, 
+   but this targets medium mobile/small tablet) */
 @media (max-width: 768px) {
+    /* Navigation Stack */
     nav {
         flex-direction: column;
+        padding: 15px 3%;
+    }
+
+    nav .logo {
+        margin-bottom: 10px;
     }
 
     nav ul {
-        margin-top: 10px;
+        margin-top: 5px;
         flex-wrap: wrap;
         justify-content: center;
     }
@@ -313,25 +295,48 @@ button:hover {
         margin: 5px 10px;
     }
 
-    header h1 {
-        font-size: 2rem;
+    /* Hero Section Adjustments */
+    .hero-section .overlay {
+        min-height: 350px;
     }
 
-    .dashboard-summary {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+    }
+
+    /* Statistics Stack */
+    .statistics-section > div {
         flex-direction: column;
+        gap: 15px;
+    }
+    
+    .stat-box {
+        max-width: 100%; /* Full width stack */
     }
 
-    #filter-controls {
-        padding: 15px;
+    /* Teaser Stack */
+    .map-teaser > div > div {
+        width: 100%; /* Two columns become one stacked column */
+        margin-bottom: 20px;
     }
 }
 
+/* Smaller mobile screens */
 @media (max-width: 480px) {
-    header {
-        padding: 60px 10px;
+    .hero-section h1 {
+        font-size: 2rem;
     }
 
-    .summary-value {
-        font-size: 1.5rem;
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    /* Adjust padding for a tighter fit */
+    section {
+        padding: 30px 3%;
     }
 }
