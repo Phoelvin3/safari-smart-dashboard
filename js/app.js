@@ -6,7 +6,7 @@
 // --- 1. CONFIGURATION (!!! UPDATE THESE PLACEHOLDERS !!!) ---
 // IMPORTANT: The key you provided is invalid/revoked. Replace the placeholder below 
 // with a new key generated from your personal OpenWeatherMap dashboard.
-const OPENWEATHER_API_KEY = "04b361566fd69d72824efb27e1110382"; 
+const OPENWEATHER_API_KEY = "9ad023a3e78b2c44c14b61dbd3974dfd"; 
 const EXCHANGERATE_API_KEY = "e9af448503b816dc05d5e0c6"; 
 const BOOKING_WHATSAPP_NUMBER = "254745964295";
 
