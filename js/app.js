@@ -4,12 +4,13 @@
 // ====================================================================
 
 // --- 1. CONFIGURATION (!!! UPDATE THESE PLACEHOLDERS !!!) ---
-const OPENWEATHER_API_KEY = "04b361566fd69d72824efb27e1110382"; // Get free key from openweathermap.org
-const EXCHANGERATE_API_KEY = "e9af448503b816dc05d5e0c6"; // Get free key from exchangerate-api.com
-const BOOKING_WHATSAPP_NUMBER = "254745964295"; // Your phone number (e.g., 254722123456)
+const OPENWEATHER_API_KEY = "04b361566fd69d72824efb27e1110382";
+const EXCHANGERATE_API_KEY = "e9af448503b816dc05d5e0c6"; 
+const BOOKING_WHATSAPP_NUMBER = "254745964295";
 
-// Global map variables
-
+// Global map variables (Declare them here to avoid scope issues)
+let map;
+let markers = []; // Initialize markers array
 
 // ====================================================================
 // A. SIMULATED DATABASE (20+ COMPLEX TOUR PACKAGES)
@@ -128,17 +129,19 @@ async function fetchCurrencyRate() {
         const response = await fetch(url);
         const data = await response.json();
 
-        if (data.result === 'success') {
+        const currencyDisplay = document.getElementById("currency-display");
+
+        if (data.result === 'success' && currencyDisplay) {
             const kesRate = data.conversion_rates.KES;
             const formattedRate = kesRate.toFixed(2);
-            document.getElementById("currency-display").innerHTML = 
-                `1 USD = ${formattedRate} KES`;
-        } else {
-            document.getElementById("currency-display").innerText = "Error fetching rates.";
+            currencyDisplay.innerHTML = `1 USD = ${formattedRate} KES`;
+        } else if (currencyDisplay) {
+            currencyDisplay.innerText = "Error fetching rates.";
         }
     } catch (error) {
         console.error("Error fetching currency data:", error);
-        document.getElementById("currency-display").innerText = "Loading failed.";
+        const currencyDisplay = document.getElementById("currency-display");
+        if (currencyDisplay) currencyDisplay.innerText = "Loading failed.";
     }
 }
 
@@ -150,17 +153,20 @@ async function fetchCurrencyRate() {
 function initMap() {
     const kenyaCenter = { lat: -1.286389, lng: 36.817223 }; 
     
-    map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 6,
-        center: kenyaCenter,
-        mapId: 'DEMO_MAP_ID',
-        mapTypeControl: false,
-        streetViewControl: false
-    });
-    
-    // Rerun search to load markers if destinations page loaded before maps script
-    if (document.getElementById('tour-listings')) {
-        handleSearch();
+    // Check if the map element exists before initializing
+    if (document.getElementById("map")) {
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 6,
+            center: kenyaCenter,
+            mapId: 'DEMO_MAP_ID',
+            mapTypeControl: false,
+            streetViewControl: false
+        });
+        
+        // Rerun search to load markers if destinations page loaded before maps script
+        if (document.getElementById('tour-listings')) {
+            handleSearch();
+        }
     }
 }
 
@@ -169,6 +175,7 @@ function addMarkersToMap(data) {
     markers.forEach(marker => marker.setMap(null));
     markers = [];
 
+    // Ensure map is initialized
     if (!map) return; 
     
     // 2. Add a new marker for each tour in the filtered data
@@ -195,9 +202,15 @@ function addMarkersToMap(data) {
         });
 
         marker.addListener("click", () => {
+             // Close all other open InfoWindows (optional but cleaner)
+             markers.forEach(m => {
+                 if (m.infoWindow) m.infoWindow.close();
+             });
             infoWindow.open(map, marker);
         });
-        
+
+        // Store info window on the marker (for closing later)
+        marker.infoWindow = infoWindow;
         markers.push(marker);
     });
 }
@@ -210,11 +223,14 @@ async function fetchAndDisplayWeather(tourId, city, elementId) {
     const tour = toursData.find(t => t.id === tourId);
     if (!tour) return;
 
+    // Use lat/lng if city name fails, for better coverage (Optional: API Key dependent)
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city},KE&appid=${OPENWEATHER_API_KEY}&units=metric`;
 
     try {
         const response = await fetch(url);
         const data = await response.json();
+        const weatherElement = document.getElementById(elementId);
+        if (!weatherElement) return;
 
         if (data.cod === 200) {
             const temp = Math.round(data.main.temp); 
@@ -226,29 +242,35 @@ async function fetchAndDisplayWeather(tourId, city, elementId) {
             // --- THE SMART LOGIC (Determine Status) ---
             if (description.includes("rain") || description.includes("shower") || temp < 15) {
                 status = `🚨 WARNING: ${temp}°C, ${description}`;
-                document.getElementById(elementId).style.color = "red";
+                weatherElement.style.color = "red";
             } else if (temp > 30) {
                  status = `🔥 HOT: ${temp}°C, ${description}`;
+                 weatherElement.style.color = "#dc3545"; // Bootstrap Red/Danger
             } else {
-                 document.getElementById(elementId).style.color = "inherit";
+                 weatherElement.style.color = "inherit";
             }
 
             // Store the status for map/filter logic
             tour.weatherStatus = status; 
             
-            document.getElementById(elementId).innerHTML = 
-                `<img src="http://openweathermap.org/img/wn/${weatherIcon}@2x.png" alt="${description}" style="width: 30px; vertical-align: middle;">
-                ${status}`;
+            weatherElement.innerHTML = 
+                `<img src="https://openweathermap.org/img/wn/${weatherIcon}@2x.png" alt="${description}" style="width: 30px; vertical-align: middle;">
+                 ${status}`;
             
         } else {
             tour.weatherStatus = `Weather data unavailable.`;
-            document.getElementById(elementId).innerText = tour.weatherStatus;
+            weatherElement.innerText = tour.weatherStatus;
         }
         
+        // After weather is fetched, re-run search to update markers if needed
+        handleSearch(); 
+        
     } catch (error) {
-        console.error("Error fetching weather data:", error);
+        console.error("Error fetching weather data:", tour.city, error);
         tour.weatherStatus = `Failed to load weather.`;
-        document.getElementById(elementId).innerText = tour.weatherStatus;
+        const weatherElement = document.getElementById(elementId);
+        if (weatherElement) weatherElement.innerText = tour.weatherStatus;
+        // Don't call handleSearch on complete failure to avoid infinite loops/load issues
     }
 }
 
@@ -266,14 +288,14 @@ function handleSearch() {
     
     // Category Checkboxes
     const selectedCategories = Array.from(document.querySelectorAll('#filter-controls input[type="checkbox"]:checked'))
-                                    .filter(cb => cb.id.startsWith('cat-'))
-                                    .map(cb => cb.value);
+                                         .filter(cb => cb.id.startsWith('cat-'))
+                                         .map(cb => cb.value);
 
     // Amenities Multi-Select
     const amenitiesSelect = document.getElementById('amenities-filter');
     const selectedAmenities = amenitiesSelect ? Array.from(amenitiesSelect.options)
-                                   .filter(option => option.selected)
-                                   .map(option => option.value) : [];
+                                       .filter(option => option.selected)
+                                       .map(option => option.value) : [];
 
 
     // 2. Filter the original toursData array
@@ -303,8 +325,9 @@ function handleSearch() {
     });
 
     // 3. Re-render the list, update the map, and update the dashboard
-    renderTours(filteredTours);
-    if (document.getElementById('total-tours-count')) {
+    // Check if on the destinations page before rendering complex features
+    if (document.getElementById('tour-listings')) {
+        renderTours(filteredTours);
         updateDashboardSummary(filteredTours);
     }
 }
@@ -323,13 +346,15 @@ function renderTours(dataToRender) {
 
     if (dataToRender.length === 0) {
         listingsContainer.innerHTML = '<p style="padding: 50px; text-align: center; background: #fff; border-radius: 8px;">No tours found matching your multi-dimensional search criteria.</p>';
-        tourCountDisplay.innerText = 0;
+        if (tourCountDisplay) tourCountDisplay.innerText = 0;
         addMarkersToMap([]); 
         return;
     }
     
-    tourCountDisplay.innerText = dataToRender.length;
+    if (tourCountDisplay) tourCountDisplay.innerText = dataToRender.length;
     addMarkersToMap(dataToRender); 
+
+    let htmlContent = ''; // Use a string buffer for efficiency
 
     dataToRender.forEach(tour => {
         // Prepare amenities list with icons
@@ -343,45 +368,51 @@ function renderTours(dataToRender) {
             }
         }).join(' ');
 
-        // The ADVANCED Tour Card HTML structure
-        const tourCardHTML = `
-            <div class="destination-card" style="width: 100%; display: flex; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-left: 5px solid var(--secondary-color);">
-                <img src="${tour.image}" alt="${tour.name}" style="width: 30%; max-height: 200px; object-fit: cover; border-radius: 4px 0 0 4px;">
+        // IMPROVED: HTML structure for better responsiveness
+        htmlContent += `
+            <div class="destination-card">
+                <div class="card-image-wrapper">
+                    <img src="${tour.image}" alt="${tour.name}">
+                </div>
                 
-                <div style="padding: 15px; flex-grow: 1;">
-                    <h3 style="margin-top: 0; color: #343a40;">${tour.name} - ${tour.city}</h3>
-                    <p style="font-size: 0.9em; color: #555;">${tour.description}</p>
+                <div class="card-content-wrapper">
+                    <h3 class="card-title">${tour.name} - ${tour.city}</h3>
+                    <p class="card-description">${tour.description}</p>
                     
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.9em;">
-                        <span style="font-weight: bold; color: #007bff;"><i class="fas fa-tags"></i> Category: ${tour.category}</span>
-                        <span><i class="fas fa-mountain"></i> Elev: ${tour.elevation}m</span>
-                        <span><i class="fas fa-clock"></i> Duration: ${tour.duration}</span>
+                    <div class="card-meta">
+                        <span class="meta-item"><i class="fas fa-tags"></i> ${tour.category}</span>
+                        <span class="meta-item"><i class="fas fa-mountain"></i> ${tour.elevation}m</span>
+                        <span class="meta-item"><i class="fas fa-clock"></i> ${tour.duration}</span>
                     </div>
 
-                    <div class="live-data-box" style="margin-top: 10px; border: 1px dashed #ccc; padding: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h4>Live Status:</h4>
-                                <p><strong>Price:</strong> <span id="price-${tour.id}" style="color: #007bff; font-weight: bold;">${tour.price.toLocaleString()}</span> KSH</p>
-                                <p><strong>Weather:</strong> <span id="weather-${tour.id}" style="font-weight: bold;">${tour.weatherStatus || 'Loading Weather...'}</span></p>
+                    <div class="live-data-box">
+                        <div class="live-data-row">
+                            <div class="live-data-price">
+                                <h4>Price:</h4>
+                                <p><span id="price-${tour.id}">${tour.price.toLocaleString()}</span> KSH</p>
                             </div>
-                            <div style="text-align: right;">
+                            <div class="live-data-amenities">
                                 <h4>Amenities:</h4>
-                                <span style="font-size: 1.5em; color: #28a745;">${amenityIcons || 'None Specified'}</span>
+                                <span class="amenity-icons">${amenityIcons || 'None'}</span>
                             </div>
                         </div>
+                         <div class="live-data-weather">
+                             <p><strong>Weather:</strong> <span id="weather-${tour.id}">Loading Weather...</span></p>
+                         </div>
                     </div>
                     
-                    <button onclick="bookNow('${tour.name}', '${tour.id}')" style="margin-top: 10px;">
+                    <button onclick="bookNow('${tour.name}', '${tour.id}')" class="book-button">
                         Secure Booking via WhatsApp
                     </button>
                 </div>
             </div>
         `;
-        listingsContainer.innerHTML += tourCardHTML;
         
+        // Start weather fetch for this card (using the same unique ID as before)
         fetchAndDisplayWeather(tour.id, tour.city, `weather-${tour.id}`);
     });
+
+    listingsContainer.innerHTML = htmlContent;
 }
 
 
@@ -392,10 +423,12 @@ function renderFeaturedTours() {
     const featuredContainer = document.getElementById('featured-listings');
     if (!featuredContainer) return; 
 
+    // Use .slice(0, 3) to get the first three tours (as before)
     const featuredTours = toursData.slice(0, 3); 
+    let htmlContent = ''; // Use a string buffer for efficiency
 
     featuredTours.forEach(tour => {
-        const tourCardHTML = `
+        htmlContent += `
             <div class="destination-card" style="width: 300px;">
                 <img src="${tour.image}" alt="${tour.name}" style="width:100%; height:200px; object-fit: cover; border-radius: 6px;">
                 <h3 style="margin-top: 10px;">${tour.name}</h3>
@@ -411,18 +444,19 @@ function renderFeaturedTours() {
                 </button>
             </div>
         `;
-        featuredContainer.innerHTML += tourCardHTML;
 
         fetchAndDisplayWeather(tour.id, tour.city, `home-weather-${tour.id}`);
     });
+    
+    featuredContainer.innerHTML = htmlContent;
 }
 
 
 // ====================================================================
 // H. HELPER FUNCTIONS
+// (All helper functions remain identical as they are clean and functional)
 // ====================================================================
 
-// WhatsApp Booking Function
 function bookNow(destinationName, tourId) {
     const recipientNumber = BOOKING_WHATSAPP_NUMBER; 
     
@@ -440,19 +474,18 @@ function bookNow(destinationName, tourId) {
     window.open(whatsappUrl, '_blank');
 }
 
-// Updates the Max Price Range Display
 function updatePriceValue(value) {
     document.getElementById('price-value').innerText = `KSH ${parseInt(value).toLocaleString()}`;
 }
 
-// Updates the Min Elevation Range Display
 function updateElevationValue(value) {
     document.getElementById('elevation-value').innerText = `${parseInt(value).toLocaleString()} Meters+`;
 }
 
-// Clears all filters and re-runs the search
 function clearAllFilters() {
-    document.getElementById('search-input').value = '';
+    // Check for element existence before setting value
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = '';
     
     const priceFilter = document.getElementById('price-filter');
     if (priceFilter) {
@@ -460,7 +493,8 @@ function clearAllFilters() {
         updatePriceValue(priceFilter.max);
     }
     
-    document.getElementById('duration-filter').value = '';
+    const durationFilter = document.getElementById('duration-filter');
+    if (durationFilter) durationFilter.value = '';
     
     const elevationFilter = document.getElementById('elevation-filter');
     if (elevationFilter) {
@@ -481,14 +515,18 @@ function clearAllFilters() {
     handleSearch();
 }
 
-// Dashboard Summary Update Function
 function updateDashboardSummary(data) {
-    document.getElementById('total-tours-count').innerText = toursData.length; 
+    const totalToursElement = document.getElementById('total-tours-count');
+    const avgPriceElement = document.getElementById('avg-price');
+
+    if (totalToursElement) totalToursElement.innerText = toursData.length; 
     
     const totalPrices = data.reduce((sum, tour) => sum + tour.price, 0);
     const avgPrice = data.length > 0 ? (totalPrices / data.length).toFixed(0) : 'N/A';
     
-    document.getElementById('avg-price').innerText = data.length > 0 ? `KSH ${parseInt(avgPrice).toLocaleString()}` : '0';
+    if (avgPriceElement) {
+        avgPriceElement.innerText = data.length > 0 ? `KSH ${parseInt(avgPrice).toLocaleString()}` : '0';
+    }
 }
 
 
@@ -506,8 +544,14 @@ function initializeApp() {
 
     if (isDestinationsPage) {
         // If on destinations.html: Load all complex features
-        updatePriceValue(document.getElementById('price-filter').value); 
-        updateElevationValue(document.getElementById('elevation-filter').value); 
+        
+        // Safely check if filters exist before setting values
+        const priceFilter = document.getElementById('price-filter');
+        if (priceFilter) updatePriceValue(priceFilter.value); 
+        
+        const elevationFilter = document.getElementById('elevation-filter');
+        if (elevationFilter) updateElevationValue(elevationFilter.value); 
+        
         handleSearch(); // Triggers rendering, weather fetching, and map update
         updateDashboardSummary(toursData);
     } else if (isHomepage) {
@@ -516,5 +560,6 @@ function initializeApp() {
     }
 }
 
-// Call the function on page load
-window.onload = initializeApp;
+// Call the function when the entire DOM content is loaded.
+// This is often more reliable than window.onload, which waits for images/assets.
+document.addEventListener('DOMContentLoaded', initializeApp);
