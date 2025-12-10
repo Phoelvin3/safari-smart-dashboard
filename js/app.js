@@ -4,7 +4,9 @@
 // ====================================================================
 
 // --- 1. CONFIGURATION (!!! UPDATE THESE PLACEHOLDERS !!!) ---
-const OPENWEATHER_API_KEY = "04b361566fd69d72824efb27e1110382";
+// IMPORTANT: The key you provided is invalid/revoked. Replace the placeholder below 
+// with a new key generated from your personal OpenWeatherMap dashboard.
+const OPENWEATHER_API_KEY = "04b361566fd69d72824efb27e1110382"; 
 const EXCHANGERATE_API_KEY = "e9af448503b816dc05d5e0c6"; 
 const BOOKING_WHATSAPP_NUMBER = "254745964295";
 
@@ -180,15 +182,16 @@ function addMarkersToMap(data) {
     
     // 2. Add a new marker for each tour in the filtered data
     data.forEach(tour => {
-        const isWarning = tour.weatherStatus.includes('WARNING');
+        // Use a more reliable check for WARNING status
+        const isWarning = tour.weatherStatus && tour.weatherStatus.includes('WARNING');
         
         const marker = new google.maps.Marker({
             position: { lat: tour.lat, lng: tour.lng },
             map: map,
             title: tour.name,
             icon: {
-                // Use a different color/pin for weather warnings
-                url: isWarning ? 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                // Use a different color/pin for weather warnings (URL is for standard Google pins)
+                url: isWarning ? 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
             }
         });
 
@@ -206,7 +209,7 @@ function addMarkersToMap(data) {
              markers.forEach(m => {
                  if (m.infoWindow) m.infoWindow.close();
              });
-            infoWindow.open(map, marker);
+             infoWindow.open(map, marker);
         });
 
         // Store info window on the marker (for closing later)
@@ -223,11 +226,30 @@ async function fetchAndDisplayWeather(tourId, city, elementId) {
     const tour = toursData.find(t => t.id === tourId);
     if (!tour) return;
 
-    // Use lat/lng if city name fails, for better coverage (Optional: API Key dependent)
+    // Use lat/lng if city name fails, for better coverage. 
+    // OpenWeatherMap is often more reliable with city/country.
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city},KE&appid=${OPENWEATHER_API_KEY}&units=metric`;
+
+    // Only attempt the fetch if the API key is not the placeholder
+    if (OPENWEATHER_API_KEY === "YOUR_PERSONAL_OPENWEATHERMAP_API_KEY") {
+        tour.weatherStatus = `⚠️ KEY REQUIRED: Cannot load weather.`;
+        const weatherElement = document.getElementById(elementId);
+        if (weatherElement) {
+             weatherElement.innerText = tour.weatherStatus;
+             weatherElement.style.color = "orange";
+        }
+        return; 
+    }
 
     try {
         const response = await fetch(url);
+        // Check for common API errors (like 401 Unauthorized for bad key)
+        if (!response.ok) {
+             // Attempt to parse the error message if the status code is bad
+             const errorData = await response.json();
+             throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        }
+        
         const data = await response.json();
         const weatherElement = document.getElementById(elementId);
         if (!weatherElement) return;
@@ -266,10 +288,14 @@ async function fetchAndDisplayWeather(tourId, city, elementId) {
         handleSearch(); 
         
     } catch (error) {
-        console.error("Error fetching weather data:", tour.city, error);
-        tour.weatherStatus = `Failed to load weather.`;
+        // This catch block handles network errors AND failed API key/response errors
+        console.error("Error fetching weather data:", tour.city, error.message);
+        tour.weatherStatus = `Failed to load weather: ${error.message.includes('401') ? 'Invalid API Key.' : 'Network Error'}.`;
         const weatherElement = document.getElementById(elementId);
-        if (weatherElement) weatherElement.innerText = tour.weatherStatus;
+        if (weatherElement) {
+             weatherElement.innerText = tour.weatherStatus;
+             weatherElement.style.color = "orange";
+        }
         // Don't call handleSearch on complete failure to avoid infinite loops/load issues
     }
 }
@@ -294,8 +320,8 @@ function handleSearch() {
     // Amenities Multi-Select
     const amenitiesSelect = document.getElementById('amenities-filter');
     const selectedAmenities = amenitiesSelect ? Array.from(amenitiesSelect.options)
-                                       .filter(option => option.selected)
-                                       .map(option => option.value) : [];
+                                            .filter(option => option.selected)
+                                            .map(option => option.value) : [];
 
 
     // 2. Filter the original toursData array
@@ -319,6 +345,7 @@ function handleSearch() {
         const amenityMatch = selectedAmenities.every(amenity => tour.amenities.includes(amenity));
 
         // Match 7: Weather (Only show tours with warnings if checked)
+        // Check for null/undefined before checking includes()
         const weatherMatch = !weatherWarning || (weatherWarning && (tour.weatherStatus && tour.weatherStatus.includes('WARNING')));
         
         return keywordMatch && priceMatch && durationMatch && elevationMatch && categoryMatch && amenityMatch && weatherMatch;
@@ -396,9 +423,9 @@ function renderTours(dataToRender) {
                                 <span class="amenity-icons">${amenityIcons || 'None'}</span>
                             </div>
                         </div>
-                         <div class="live-data-weather">
-                             <p><strong>Weather:</strong> <span id="weather-${tour.id}">Loading Weather...</span></p>
-                         </div>
+                           <div class="live-data-weather">
+                               <p><strong>Weather:</strong> <span id="weather-${tour.id}">Loading Weather...</span></p>
+                           </div>
                     </div>
                     
                     <button onclick="bookNow('${tour.name}', '${tour.id}')" class="book-button">
@@ -409,7 +436,10 @@ function renderTours(dataToRender) {
         `;
         
         // Start weather fetch for this card (using the same unique ID as before)
-        fetchAndDisplayWeather(tour.id, tour.city, `weather-${tour.id}`);
+        // Check if weather status is not already set (prevents unnecessary re-fetches)
+        if (!tour.weatherStatus) {
+            fetchAndDisplayWeather(tour.id, tour.city, `weather-${tour.id}`);
+        }
     });
 
     listingsContainer.innerHTML = htmlContent;
@@ -445,7 +475,10 @@ function renderFeaturedTours() {
             </div>
         `;
 
-        fetchAndDisplayWeather(tour.id, tour.city, `home-weather-${tour.id}`);
+        // Start weather fetch for this card
+        if (!tour.weatherStatus) {
+             fetchAndDisplayWeather(tour.id, tour.city, `home-weather-${tour.id}`);
+        }
     });
     
     featuredContainer.innerHTML = htmlContent;
